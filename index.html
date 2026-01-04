@@ -11,29 +11,23 @@ body{background:#1E1E1E;color:#fff;display:flex;flex-direction:column;height:100
 header{background:#2C2C2C;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;}
 header h1{font-size:18px;font-weight:700;}
 header button{background:#FF5E5E;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;color:#fff;}
-
 .main{display:flex;flex:1;overflow:hidden;}
 .sidebar{width:220px;background:#2A2A2A;padding:10px;display:flex;flex-direction:column;gap:10px;}
 .sidebar h2{font-size:16px;font-weight:600;margin-bottom:8px;}
 .media-item{background:#3A3A3A;height:60px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-
 .editor{flex:1;display:flex;flex-direction:column;padding:10px;gap:10px;}
 .preview{background:#000;flex:2;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#888;font-size:18px;position:relative;overflow:hidden;}
 .preview canvas, .preview video{max-width:100%;max-height:100%;border-radius:8px;}
-
-.timeline{background:#2A2A2A;flex:1;border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;overflow-x:auto;}
-.clip{background:#FF5E5E;height:60px;min-width:100px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-
+.timeline{background:#2A2A2A;flex:1;border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;overflow-x:auto;position:relative;}
+.clip{background:#FF5E5E;height:60px;min-width:100px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.handle{width:8px;height:100%;background:#fff;position:absolute;top:0;cursor:ew-resize;}
 .toolbar{background:#2C2C2C;display:flex;justify-content:space-around;padding:8px 0;border-top:1px solid #444;}
 .toolbar button{background:#3A3A3A;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;color:#fff;}
-
 .feature-panel, .filter-panel{background:#2A2A2A;padding:10px;border-radius:8px;margin-top:10px;display:flex;flex-wrap:wrap;gap:10px;}
 .feature-panel button, .filter-panel button{background:#FF5E5E;padding:6px 10px;border-radius:6px;border:none;cursor:pointer;color:#fff;font-size:14px;}
-
 ::-webkit-scrollbar{height:6px;width:6px;}
 ::-webkit-scrollbar-thumb{background:#555;border-radius:3px;}
 ::-webkit-scrollbar-track{background:#2A2A2A;}
-
 @media(max-width:768px){
 .main{flex-direction:column;}
 .sidebar{width:100%;flex-direction:row;overflow-x:auto;}
@@ -65,6 +59,10 @@ header button{background:#FF5E5E;border:none;padding:6px 12px;border-radius:6px;
 <button onclick="adjustBrightness()">Brightness</button>
 <button onclick="adjustContrast()">Contrast</button>
 <button onclick="adjustSaturation()">Saturation</button>
+<button onclick="reverseVideoUI()">Reverse Video</button>
+<button onclick="speedVideoUI(0.5)">0.5x</button>
+<button onclick="speedVideoUI(1)">1x</button>
+<button onclick="speedVideoUI(2)">2x</button>
 <button onclick="exportMedia()">Export</button>
 </div>
 
@@ -90,12 +88,13 @@ const mediaSidebar=document.getElementById('mediaSidebar');
 const timeline=document.getElementById('timeline');
 const importMedia=document.getElementById('importMedia');
 
+// Import Media
 importMedia.addEventListener('change',async e=>{
   const files=Array.from(e.target.files);
   for(const file of files){
     const url=URL.createObjectURL(file);
     const type=file.type.startsWith('video')?'video':'image';
-    mediaList.push({file,url,type});
+    mediaList.push({file,url,type,start:0,end:0});
     addMediaUI(file.name,mediaList.length-1);
   }
   if(currentIndex===-1 && mediaList.length) selectMedia(0);
@@ -105,6 +104,10 @@ function addMediaUI(name,index){
   const div=document.createElement('div'); div.className='media-item'; div.textContent=name; div.onclick=()=>selectMedia(index);
   mediaSidebar.appendChild(div);
   const clip=document.createElement('div'); clip.className='clip'; clip.textContent=name; clip.onclick=()=>selectMedia(index);
+  // Add left/right handles
+  const leftHandle=document.createElement('div'); leftHandle.className='handle'; leftHandle.style.left='0'; clip.appendChild(leftHandle);
+  const rightHandle=document.createElement('div'); rightHandle.className='handle'; rightHandle.style.right='0'; clip.appendChild(rightHandle);
+  makeHandleDraggable(leftHandle,rightHandle,index,clip);
   timeline.appendChild(clip);
 }
 
@@ -116,13 +119,32 @@ function selectMedia(index){
   if(media.type==='image'){
     const img=new Image(); img.src=media.url;
     img.onload=()=>{
-      const canvas=document.createElement('canvas');
-      canvas.width=img.width; canvas.height=img.height;
-      const ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0);
-      preview.appendChild(canvas); pushUndo();
+      const canvas=document.createElement('canvas'); canvas.width=img.width; canvas.height=img.height;
+      const ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0); preview.appendChild(canvas); pushUndo();
     }
   } else {
     const video=document.createElement('video'); video.src=media.url; video.controls=true; preview.appendChild(video);
+    media.start=0; media.end=video.duration || 0;
+  }
+}
+
+// Draggable Trim Handles
+function makeHandleDraggable(left,right,index,clip){
+  let dragging=null;
+  const media=mediaList[index];
+  const rect=clip.getBoundingClientRect();
+  left.onmousedown=right.onmousedown=function(e){
+    dragging=e.target===left?'left':'right';
+    e.preventDefault();
+    document.onmousemove=function(ev){
+      const clipRect=clip.getBoundingClientRect();
+      const pos=ev.clientX-clipRect.left;
+      if(dragging==='left'){ left.style.left=Math.min(pos,clipRect.width-20)+'px'; }
+      else{ right.style.right=Math.min(clipRect.width-pos,clipRect.width-20)+'px'; }
+    }
+    document.onmouseup=function(){
+      document.onmousemove=null; document.onmouseup=null;
+    }
   }
 }
 
@@ -138,36 +160,20 @@ function cropPhoto(){ alert('Crop UI coming soon'); }
 function adjustBrightness(){ adjustPhoto('brightness'); }
 function adjustContrast(){ adjustPhoto('contrast'); }
 function adjustSaturation(){ adjustPhoto('saturate'); }
-
 function adjustPhoto(type){ if(currentType!=='image') return; const val=prompt(`Enter ${type} value (1=normal,1.2=+20%)`); if(!val) return; const canvas=preview.querySelector('canvas'); const ctx=canvas.getContext('2d'); const img=new Image(); img.src=canvas.toDataURL(); img.onload=()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.filter=`${type}(${val})`; ctx.drawImage(img,0,0); ctx.filter='none'; pushUndo(); } }
 
-// Export
-function exportMedia(){
-  if(currentType==='image'){
-    const canvas=preview.querySelector('canvas'); if(!canvas) return;
-    const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download=mediaList[currentIndex].file.name; a.click();
-  } else {
-    const videoFile=mediaList[currentIndex].file;
-    const a=document.createElement('a'); a.href=URL.createObjectURL(videoFile); a.download='video.mp4'; a.click();
-  }
-}
-
-// Video editing (trim/speed/reverse)
-const ffmpeg=createFFmpeg({log:true});
+// Video Operations
 async function initFFmpeg(){ if(!ffmpeg.isLoaded()) await ffmpeg.load(); }
 
-async function trimVideo(start,end){
-  if(currentType!=='video') return; await initFFmpeg();
-  const file=mediaList[currentIndex].file;
-  ffmpeg.FS('writeFile','input.mp4',await fetchFile(file));
-  await ffmpeg.run('-i','input.mp4','-ss',start,'-to',end,'-c','copy','output.mp4');
-  const data=ffmpeg.FS('readFile','output.mp4');
-  const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
-  preview.innerHTML=''; const video=document.createElement('video'); video.src=url; video.controls=true; preview.appendChild(video);
-}
-async function reverseVideo(){ if(currentType!=='video') return; await initFFmpeg(); const file=mediaList[currentIndex].file; ffmpeg.FS('writeFile','input.mp4',await fetchFile(file)); await ffmpeg.run('-i','input.mp4','-vf','reverse','-af','areverse','output.mp4'); const data=ffmpeg.FS('readFile','output.mp4'); const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'})); preview.innerHTML=''; const video=document.createElement('video'); video.src=url; video.controls=true; preview.appendChild(video);}
-async function changeSpeed(factor){ if(currentType!=='video') return; await initFFmpeg(); const file=mediaList[currentIndex].file; ffmpeg.FS('writeFile','input.mp4',await fetchFile(file)); await ffmpeg.run('-i','input.mp4','-filter_complex',`[0:v]setpts=${1/factor}*PTS[v];[0:a]atempo=${factor}[a]`,'-map','[v]','-map','[a]','output.mp4'); const data=ffmpeg.FS('readFile','output.mp4'); const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'})); preview.innerHTML=''; const video=document.createElement('video'); video.src=url; video.controls=true; preview.appendChild(video);}
-</script>
+async function reverseVideoUI(){ if(currentType!=='video') return; await initFFmpeg(); const file=mediaList[currentIndex].file; ffmpeg.FS('writeFile','input.mp4',await fetchFile(file)); await ffmpeg.run('-i','input.mp4','-vf','reverse','-af','areverse','output.mp4'); const data=ffmpeg.FS('readFile','output.mp4'); const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'})); preview.innerHTML=''; const video=document.createElement('video'); video.src=url; video.controls=true; preview.appendChild(video); }
 
+async function speedVideoUI(factor){ if(currentType!=='video') return; await initFFmpeg(); const file=mediaList[currentIndex].file; ffmpeg.FS('writeFile','input.mp4',await fetchFile(file)); await ffmpeg.run('-i','input.mp4','-filter_complex',`[0:v]setpts=${1/factor}*PTS[v];[0:a]atempo=${factor}[a]`,'-map','[v]','-map','[a]','output.mp4'); const data=ffmpeg.FS('readFile','output.mp4'); const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'})); preview.innerHTML=''; const video=document.createElement('video'); video.src=url; video.controls=true; preview.appendChild(video); }
+
+// Export Media
+function exportMedia(){
+  if(currentType==='image'){ const canvas=preview.querySelector('canvas'); if(!canvas) return; const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download=mediaList[currentIndex].file.name; a.click(); }
+  else{ const file=mediaList[currentIndex].file; const a=document.createElement('a'); a.href=URL.createObjectURL(file); a.download='video.mp4'; a.click(); }
+}
+</script>
 </body>
 </html>
