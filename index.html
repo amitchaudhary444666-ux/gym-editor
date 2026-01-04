@@ -3,201 +3,170 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Amit Nauhwar</title>
+<title>Amit Nauhwar Gym Editor</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-* { box-sizing:border-box; margin:0; padding:0; font-family:'Inter',sans-serif; }
-body { background:#1E1E1E; color:#fff; display:flex; flex-direction:column; height:100vh; }
-header { background:#2C2C2C; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
-header h1 { font-size:18px; font-weight:700; }
-header button { background:#FF5E5E; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; color:#fff; }
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
+body{background:#1E1E1E;color:#fff;display:flex;flex-direction:column;height:100vh;}
+header{background:#2C2C2C;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;}
+header h1{font-size:18px;font-weight:700;}
+header button{background:#FF5E5E;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;color:#fff;}
 
-.main { display:flex; flex:1; overflow:hidden; }
-.sidebar { width:220px; background:#2A2A2A; padding:10px; display:flex; flex-direction:column; gap:10px; }
-.sidebar h2 { font-size:16px; font-weight:600; margin-bottom:8px; }
-.media-item { background:#3A3A3A; height:60px; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.main{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:220px;background:#2A2A2A;padding:10px;display:flex;flex-direction:column;gap:10px;}
+.sidebar h2{font-size:16px;font-weight:600;margin-bottom:8px;}
+.media-item{background:#3A3A3A;height:60px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 
-.editor { flex:1; display:flex; flex-direction:column; padding:10px; gap:10px; }
-.preview { background:#000; flex:2; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#888; font-size:18px; position:relative; overflow:hidden; }
-.preview img, .preview video { max-width:100%; max-height:100%; border-radius:8px; transition: all 0.3s ease; }
+.editor{flex:1;display:flex;flex-direction:column;padding:10px;gap:10px;}
+.preview{background:#000;flex:2;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#888;font-size:18px;position:relative;overflow:hidden;}
+.preview canvas, .preview video{max-width:100%;max-height:100%;border-radius:8px;}
 
-.timeline { background:#2A2A2A; flex:1; border-radius:8px; padding:10px; display:flex; align-items:center; gap:8px; overflow-x:auto; }
-.clip { background:#FF5E5E; height:60px; min-width:100px; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.timeline{background:#2A2A2A;flex:1;border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;overflow-x:auto;}
+.clip{background:#FF5E5E;height:60px;min-width:100px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 
-.toolbar { background:#2C2C2C; display:flex; justify-content:space-around; padding:8px 0; border-top:1px solid #444; }
-.toolbar button { background:#3A3A3A; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; color:#fff; }
+.toolbar{background:#2C2C2C;display:flex;justify-content:space-around;padding:8px 0;border-top:1px solid #444;}
+.toolbar button{background:#3A3A3A;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;color:#fff;}
 
-.feature-panel, .photo-panel, .filter-panel { background:#2A2A2A; padding:10px; border-radius:8px; margin-top:10px; display:flex; flex-wrap:wrap; gap:10px; }
-.feature-panel button, .photo-panel button, .filter-panel button { background:#FF5E5E; padding:6px 10px; border-radius:6px; border:none; cursor:pointer; color:#fff; font-size:14px; }
+.feature-panel, .filter-panel{background:#2A2A2A;padding:10px;border-radius:8px;margin-top:10px;display:flex;flex-wrap:wrap;gap:10px;}
+.feature-panel button, .filter-panel button{background:#FF5E5E;padding:6px 10px;border-radius:6px;border:none;cursor:pointer;color:#fff;font-size:14px;}
 
-::-webkit-scrollbar { height:6px; width:6px; }
-::-webkit-scrollbar-thumb { background:#555; border-radius:3px; }
-::-webkit-scrollbar-track { background:#2A2A2A; }
+::-webkit-scrollbar{height:6px;width:6px;}
+::-webkit-scrollbar-thumb{background:#555;border-radius:3px;}
+::-webkit-scrollbar-track{background:#2A2A2A;}
 
 @media(max-width:768px){
-  .main{ flex-direction:column; }
-  .sidebar{ width:100%; flex-direction:row; overflow-x:auto; }
-  .timeline{ flex:none; height:80px; }
-  .editor{ flex:none; }
+.main{flex-direction:column;}
+.sidebar{width:100%;flex-direction:row;overflow-x:auto;}
+.timeline{flex:none;height:80px;}
+.editor{flex:none;}
 }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Amit Nauhwar</h1>
-  <!-- Hidden file input for importing media -->
-  <input type="file" id="importMedia" accept="image/*,video/*" style="display:none">
-  <button onclick="document.getElementById('importMedia').click()">Import Media</button>
+<h1>Amit Nauhwar</h1>
+<input type="file" id="importMedia" accept="image/*,video/*" style="display:none" multiple>
+<button onclick="document.getElementById('importMedia').click()">Import Media</button>
 </header>
 
 <div class="main">
-  <div class="sidebar" id="mediaSidebar">
-    <h2>Media Library</h2>
-    <!-- Media items will be dynamically added here -->
-  </div>
+<div class="sidebar" id="mediaSidebar"><h2>Media Library</h2></div>
 
-  <div class="editor">
-    <div class="preview" id="preview">Preview Area</div>
-    
-    <!-- Timeline -->
-    <div class="timeline" id="timeline"></div>
+<div class="editor">
+<div class="preview" id="preview">Preview Area</div>
+<div class="timeline" id="timeline"></div>
 
-    <!-- Video Editing Tools -->
-    <div class="feature-panel">
-      <button onclick="applyFilter('muscle')">Muscle AI</button>
-      <button onclick="trimMedia()">Trim / Cut</button>
-      <button onclick="adjustSpeed()">Slow / Fast</button>
-      <button onclick="reverseMedia()">Reverse</button>
-      <button onclick="addText()">Text Overlay</button>
-      <button onclick="addSticker()">Stickers / Badges</button>
-      <button onclick="addTransition()">Transitions</button>
-      <button onclick="addAudio()">Audio / Music</button>
-      <button onclick="exportMedia()">Export</button>
-    </div>
-
-    <!-- Photo Editing Tools -->
-    <div class="photo-panel">
-      <button onclick="cropMedia()">Crop / Resize</button>
-      <button onclick="rotateMedia()">Rotate</button>
-      <button onclick="brightnessAdjust()">Brightness</button>
-      <button onclick="contrastAdjust()">Contrast</button>
-      <button onclick="saturationAdjust()">Saturation</button>
-      <button onclick="applyFilter('muscle')">Muscle Highlight</button>
-      <button onclick="poseCompare()">Pose Comparison</button>
-    </div>
-
-    <!-- Filters -->
-    <div class="filter-panel">
-      <button onclick="applyFilter('none')">Normal</button>
-      <button onclick="applyFilter('muscle')">Muscle Highlight</button>
-      <button onclick="applyFilter('glow')">Gym Glow</button>
-      <button onclick="applyFilter('beforeafter')">Before/After Tone</button>
-      <button onclick="applyFilter('contrast')">High Contrast</button>
-      <button onclick="applyFilter('cool')">Cool Tone</button>
-    </div>
-  </div>
+<div class="feature-panel">
+<button onclick="undo()">Undo</button>
+<button onclick="redo()">Redo</button>
+<button onclick="rotatePhoto()">Rotate</button>
+<button onclick="cropPhoto()">Crop</button>
+<button onclick="adjustBrightness()">Brightness</button>
+<button onclick="adjustContrast()">Contrast</button>
+<button onclick="adjustSaturation()">Saturation</button>
+<button onclick="exportMedia()">Export</button>
 </div>
 
-<div class="toolbar">
-  <button>Video</button>
-  <button>Photo</button>
-  <button>Before/After</button>
-  <button>Pose Comparison</button>
-  <button>Adjust</button>
+<div class="filter-panel">
+<button onclick="applyFilter('none')">Normal</button>
+<button onclick="applyFilter('muscle')">Muscle Highlight</button>
+<button onclick="applyFilter('glow')">Gym Glow</button>
+<button onclick="applyFilter('beforeafter')">Before/After Tone</button>
+<button onclick="applyFilter('contrast')">High Contrast</button>
+<button onclick="applyFilter('cool')">Cool Tone</button>
+</div>
+</div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.0/dist/ffmpeg.min.js"></script>
 <script>
-// Globals
-let currentMedia = null;
-const preview = document.getElementById('preview');
-const timeline = document.getElementById('timeline');
-const mediaSidebar = document.getElementById('mediaSidebar');
-const importMedia = document.getElementById('importMedia');
+const { createFFmpeg, fetchFile } = FFmpeg;
+const ffmpeg = createFFmpeg({ log:true });
 
-// Import media
-importMedia.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+let mediaList=[], currentIndex=-1, undoStack=[], redoStack=[], currentType=null;
+const preview=document.getElementById('preview');
+const mediaSidebar=document.getElementById('mediaSidebar');
+const timeline=document.getElementById('timeline');
+const importMedia=document.getElementById('importMedia');
 
-  const url = URL.createObjectURL(file);
-  currentMedia = { file, url, type: file.type.startsWith('video') ? 'video' : 'image' };
-
-  // Show in preview
-  displayPreview(currentMedia);
-
-  // Add to sidebar
-  const div = document.createElement('div');
-  div.className = 'media-item';
-  div.textContent = file.name;
-  div.onclick = () => displayPreview(currentMedia);
-  mediaSidebar.appendChild(div);
-
-  // Add to timeline
-  const clip = document.createElement('div');
-  clip.className = 'clip';
-  clip.textContent = file.name;
-  timeline.appendChild(clip);
+importMedia.addEventListener('change',async e=>{
+  const files=Array.from(e.target.files);
+  for(const file of files){
+    const url=URL.createObjectURL(file);
+    const type=file.type.startsWith('video')?'video':'image';
+    mediaList.push({file,url,type});
+    addMediaUI(file.name,mediaList.length-1);
+  }
+  if(currentIndex===-1 && mediaList.length) selectMedia(0);
 });
 
-// Display in preview
-function displayPreview(media) {
-  preview.innerHTML = '';
-  if (media.type === 'image') {
-    const img = document.createElement('img');
-    img.src = media.url;
-    preview.appendChild(img);
+function addMediaUI(name,index){
+  const div=document.createElement('div'); div.className='media-item'; div.textContent=name; div.onclick=()=>selectMedia(index);
+  mediaSidebar.appendChild(div);
+  const clip=document.createElement('div'); clip.className='clip'; clip.textContent=name; clip.onclick=()=>selectMedia(index);
+  timeline.appendChild(clip);
+}
+
+function selectMedia(index){
+  currentIndex=index;
+  const media=mediaList[index];
+  currentType=media.type;
+  preview.innerHTML='';
+  if(media.type==='image'){
+    const img=new Image(); img.src=media.url;
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      canvas.width=img.width; canvas.height=img.height;
+      const ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0);
+      preview.appendChild(canvas); pushUndo();
+    }
   } else {
-    const video = document.createElement('video');
-    video.src = media.url;
-    video.controls = true;
-    preview.appendChild(video);
+    const video=document.createElement('video'); video.src=media.url; video.controls=true; preview.appendChild(video);
   }
 }
 
-// Filters
-function applyFilter(filter){
-  if (!currentMedia) return;
-  const el = preview.querySelector('img,video');
-  switch(filter){
-    case 'muscle': el.style.filter = 'contrast(1.5) brightness(1.2) saturate(1.3)'; break;
-    case 'glow': el.style.filter = 'brightness(1.3) sepia(0.2) saturate(1.4)'; break;
-    case 'beforeafter': el.style.filter = 'contrast(1.4) brightness(1.1)'; break;
-    case 'contrast': el.style.filter = 'contrast(1.7)'; break;
-    case 'cool': el.style.filter = 'hue-rotate(200deg) brightness(1.1) contrast(1.3)'; break;
-    default: el.style.filter = 'none';
-  }
-}
+// Undo/Redo
+function pushUndo(){ if(currentType!=='image') return; const canvas=preview.querySelector('canvas'); if(!canvas) return; undoStack.push(canvas.toDataURL()); if(undoStack.length>20) undoStack.shift(); redoStack=[]; }
+function undo(){ if(!undoStack.length) return; const canvas=preview.querySelector('canvas'); const data=undoStack.pop(); redoStack.push(canvas.toDataURL()); const img=new Image(); img.src=data; img.onload=()=>canvas.getContext('2d').drawImage(img,0,0); }
+function redo(){ if(!redoStack.length) return; const canvas=preview.querySelector('canvas'); const data=redoStack.pop(); undoStack.push(canvas.toDataURL()); const img=new Image(); img.src=data; img.onload=()=>canvas.getContext('2d').drawImage(img,0,0); }
 
-// Placeholder functions for buttons
-function trimMedia(){ alert('Trim/Cut feature coming soon'); }
-function adjustSpeed(){ alert('Slow/Fast feature coming soon'); }
-function reverseMedia(){ alert('Reverse feature coming soon'); }
-function addText(){ alert('Text overlay coming soon'); }
-function addSticker(){ alert('Stickers coming soon'); }
-function addTransition(){ alert('Transitions coming soon'); }
-function addAudio(){ alert('Audio feature coming soon'); }
-function cropMedia(){ alert('Crop/Resize coming soon'); }
-function rotateMedia(){ alert('Rotate coming soon'); }
-function brightnessAdjust(){ alert('Brightness adjustment coming soon'); }
-function contrastAdjust(){ alert('Contrast adjustment coming soon'); }
-function saturationAdjust(){ alert('Saturation adjustment coming soon'); }
-function poseCompare(){ alert('Pose comparison coming soon'); }
+// Photo Adjustments
+function applyFilter(type){ if(currentType!=='image') return; const canvas=preview.querySelector('canvas'); const ctx=canvas.getContext('2d'); const img=new Image(); img.src=canvas.toDataURL(); img.onload=()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); switch(type){ case'muscle':ctx.filter='contrast(1.5) brightness(1.2) saturate(1.3)';break; case'glow':ctx.filter='brightness(1.3) sepia(0.2) saturate(1.4)';break; case'beforeafter':ctx.filter='contrast(1.4) brightness(1.1)';break; case'contrast':ctx.filter='contrast(1.7)';break; case'cool':ctx.filter='hue-rotate(200deg) brightness(1.1) contrast(1.3)';break; default:ctx.filter='none';} ctx.drawImage(img,0,0); ctx.filter='none'; pushUndo(); } }
+function rotatePhoto(){ if(currentType!=='image') return; const canvas=preview.querySelector('canvas'); const ctx=canvas.getContext('2d'); const img=new Image(); img.src=canvas.toDataURL(); img.onload=()=>{ const temp=document.createElement('canvas'); temp.width=canvas.height; temp.height=canvas.width; const tctx=temp.getContext('2d'); tctx.translate(temp.width/2,temp.height/2); tctx.rotate(Math.PI/2); tctx.drawImage(img,-img.width/2,-img.height/2); canvas.width=temp.width; canvas.height=temp.height; ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(temp,0,0); pushUndo(); } }
+function cropPhoto(){ alert('Crop UI coming soon'); }
+function adjustBrightness(){ adjustPhoto('brightness'); }
+function adjustContrast(){ adjustPhoto('contrast'); }
+function adjustSaturation(){ adjustPhoto('saturate'); }
 
-// Export media
+function adjustPhoto(type){ if(currentType!=='image') return; const val=prompt(`Enter ${type} value (1=normal,1.2=+20%)`); if(!val) return; const canvas=preview.querySelector('canvas'); const ctx=canvas.getContext('2d'); const img=new Image(); img.src=canvas.toDataURL(); img.onload=()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.filter=`${type}(${val})`; ctx.drawImage(img,0,0); ctx.filter='none'; pushUndo(); } }
+
+// Export
 function exportMedia(){
-  if (!currentMedia) return alert('No media loaded');
-  const el = preview.querySelector('img,video');
-  if (!el) return;
-  if (currentMedia.type === 'image'){
-    const a = document.createElement('a');
-    a.href = el.src;
-    a.download = currentMedia.file.name;
-    a.click();
+  if(currentType==='image'){
+    const canvas=preview.querySelector('canvas'); if(!canvas) return;
+    const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download=mediaList[currentIndex].file.name; a.click();
   } else {
-    alert('Video export coming soon'); // Video export requires FFmpeg WASM
+    const videoFile=mediaList[currentIndex].file;
+    const a=document.createElement('a'); a.href=URL.createObjectURL(videoFile); a.download='video.mp4'; a.click();
   }
 }
+
+// Video editing (trim/speed/reverse)
+const ffmpeg=createFFmpeg({log:true});
+async function initFFmpeg(){ if(!ffmpeg.isLoaded()) await ffmpeg.load(); }
+
+async function trimVideo(start,end){
+  if(currentType!=='video') return; await initFFmpeg();
+  const file=mediaList[currentIndex].file;
+  ffmpeg.FS('writeFile','input.mp4',await fetchFile(file));
+  await ffmpeg.run('-i','input.mp4','-ss',start,'-to',end,'-c','copy','output.mp4');
+  const data=ffmpeg.FS('readFile','output.mp4');
+  const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
+  preview.innerHTML=''; const video=document.createElement('video'); video.src=url; video.controls=true; preview.appendChild(video);
+}
+async function reverseVideo(){ if(currentType!=='video') return; await initFFmpeg(); const file=mediaList[currentIndex].file; ffmpeg.FS('writeFile','input.mp4',await fetchFile(file)); await ffmpeg.run('-i','input.mp4','-vf','reverse','-af','areverse','output.mp4'); const data=ffmpeg.FS('readFile','output.mp4'); const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'})); preview.innerHTML=''; const video=document.createElement('video'); video.src=url; video.controls=true; preview.appendChild(video);}
+async function changeSpeed(factor){ if(currentType!=='video') return; await initFFmpeg(); const file=mediaList[currentIndex].file; ffmpeg.FS('writeFile','input.mp4',await fetchFile(file)); await ffmpeg.run('-i','input.mp4','-filter_complex',`[0:v]setpts=${1/factor}*PTS[v];[0:a]atempo=${factor}[a]`,'-map','[v]','-map','[a]','output.mp4'); const data=ffmpeg.FS('readFile','output.mp4'); const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'})); preview.innerHTML=''; const video=document.createElement('video'); video.src=url; video.controls=true; preview.appendChild(video);}
 </script>
 
 </body>
