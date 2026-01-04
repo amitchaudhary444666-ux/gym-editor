@@ -3,256 +3,202 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GymCut Pro – Fixed CapCut UI</title>
+<title>Amit Nauhwar</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#000;color:#fff;font-family:system-ui;overflow:hidden}
-.app{display:grid;grid-template-rows:60px 1fr 200px;height:100vh}
+* { box-sizing:border-box; margin:0; padding:0; font-family:'Inter',sans-serif; }
+body { background:#1E1E1E; color:#fff; display:flex; flex-direction:column; height:100vh; }
+header { background:#2C2C2C; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
+header h1 { font-size:18px; font-weight:700; }
+header button { background:#FF5E5E; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; color:#fff; }
 
-/* Top Toolbar */
-.toolbar{display:flex;align-items:center;justify-content:space-around;padding:6px;background:#111}
-.toolbar button{background:#222;color:#fff;border:none;border-radius:12px;width:40px;height:40px;font-size:18px;display:flex;align-items:center;justify-content:center}
+.main { display:flex; flex:1; overflow:hidden; }
+.sidebar { width:220px; background:#2A2A2A; padding:10px; display:flex; flex-direction:column; gap:10px; }
+.sidebar h2 { font-size:16px; font-weight:600; margin-bottom:8px; }
+.media-item { background:#3A3A3A; height:60px; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
 
-/* Video Preview */
-.preview{position:relative;display:flex;justify-content:center;align-items:center;background:#000;margin:4px;flex:1}
-.preview video{max-width:95%;border-radius:16px;box-shadow:0 4px 20px rgba(0,255,153,0.3)}
-.text{position:absolute;font-size:28px;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.7);transform:scale(1)}
-.flash{position:absolute;inset:0;background:#00ff99;opacity:0;pointer-events:none;border-radius:16px}
+.editor { flex:1; display:flex; flex-direction:column; padding:10px; gap:10px; }
+.preview { background:#000; flex:2; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#888; font-size:18px; position:relative; overflow:hidden; }
+.preview img, .preview video { max-width:100%; max-height:100%; border-radius:8px; transition: all 0.3s ease; }
 
-/* Timeline */
-.timeline{background:#111;padding:6px;overflow-x:auto;white-space:nowrap;display:flex;align-items:center;gap:4px;position:relative;height:60px}
-.clip{display:inline-block;width:80px;height:40px;background:#222;border-radius:8px;position:absolute}
-.beat{display:inline-block;width:2px;height:40px;background:#00ff99;position:absolute}
-.key{position:absolute;top:-8px;color:#00ff99;font-size:16px}
+.timeline { background:#2A2A2A; flex:1; border-radius:8px; padding:10px; display:flex; align-items:center; gap:8px; overflow-x:auto; }
+.clip { background:#FF5E5E; height:60px; min-width:100px; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
 
-/* Bottom Adjustment Panel */
-.adjust-panel{position:absolute;bottom:0;left:0;right:0;background:#111;padding:8px;display:flex;overflow-x:auto;gap:10px;box-shadow:0 -4px 20px rgba(0,255,153,0.2);border-top-left-radius:16px;border-top-right-radius:16px}
-.adjust-panel div{display:flex;flex-direction:column;align-items:center}
-.adjust-panel label{font-size:12px;color:#fff}
-.adjust-panel input[type=range]{width:80px}
+.toolbar { background:#2C2C2C; display:flex; justify-content:space-around; padding:8px 0; border-top:1px solid #444; }
+.toolbar button { background:#3A3A3A; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; color:#fff; }
+
+.feature-panel, .photo-panel, .filter-panel { background:#2A2A2A; padding:10px; border-radius:8px; margin-top:10px; display:flex; flex-wrap:wrap; gap:10px; }
+.feature-panel button, .photo-panel button, .filter-panel button { background:#FF5E5E; padding:6px 10px; border-radius:6px; border:none; cursor:pointer; color:#fff; font-size:14px; }
+
+::-webkit-scrollbar { height:6px; width:6px; }
+::-webkit-scrollbar-thumb { background:#555; border-radius:3px; }
+::-webkit-scrollbar-track { background:#2A2A2A; }
+
+@media(max-width:768px){
+  .main{ flex-direction:column; }
+  .sidebar{ width:100%; flex-direction:row; overflow-x:auto; }
+  .timeline{ flex:none; height:80px; }
+  .editor{ flex:none; }
+}
 </style>
 </head>
 <body>
-<div class="app">
 
-<!-- Top Toolbar -->
+<header>
+  <h1>Amit Nauhwar</h1>
+  <!-- Hidden file input for importing media -->
+  <input type="file" id="importMedia" accept="image/*,video/*" style="display:none">
+  <button onclick="document.getElementById('importMedia').click()">Import Media</button>
+</header>
+
+<div class="main">
+  <div class="sidebar" id="mediaSidebar">
+    <h2>Media Library</h2>
+    <!-- Media items will be dynamically added here -->
+  </div>
+
+  <div class="editor">
+    <div class="preview" id="preview">Preview Area</div>
+    
+    <!-- Timeline -->
+    <div class="timeline" id="timeline"></div>
+
+    <!-- Video Editing Tools -->
+    <div class="feature-panel">
+      <button onclick="applyFilter('muscle')">Muscle AI</button>
+      <button onclick="trimMedia()">Trim / Cut</button>
+      <button onclick="adjustSpeed()">Slow / Fast</button>
+      <button onclick="reverseMedia()">Reverse</button>
+      <button onclick="addText()">Text Overlay</button>
+      <button onclick="addSticker()">Stickers / Badges</button>
+      <button onclick="addTransition()">Transitions</button>
+      <button onclick="addAudio()">Audio / Music</button>
+      <button onclick="exportMedia()">Export</button>
+    </div>
+
+    <!-- Photo Editing Tools -->
+    <div class="photo-panel">
+      <button onclick="cropMedia()">Crop / Resize</button>
+      <button onclick="rotateMedia()">Rotate</button>
+      <button onclick="brightnessAdjust()">Brightness</button>
+      <button onclick="contrastAdjust()">Contrast</button>
+      <button onclick="saturationAdjust()">Saturation</button>
+      <button onclick="applyFilter('muscle')">Muscle Highlight</button>
+      <button onclick="poseCompare()">Pose Comparison</button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-panel">
+      <button onclick="applyFilter('none')">Normal</button>
+      <button onclick="applyFilter('muscle')">Muscle Highlight</button>
+      <button onclick="applyFilter('glow')">Gym Glow</button>
+      <button onclick="applyFilter('beforeafter')">Before/After Tone</button>
+      <button onclick="applyFilter('contrast')">High Contrast</button>
+      <button onclick="applyFilter('cool')">Cool Tone</button>
+    </div>
+  </div>
+</div>
+
 <div class="toolbar">
-<button onclick="uploadVideo()"></button>
-<button onclick="uploadAudio()"></button>
-<button onclick="undo()"></button>
-<button onclick="redo()"></button>
-<button onclick="applyPreset('shred')"></button>
-<button onclick="detectBeats()"></button>
-<button onclick="addKeyframe()"></button>
-<button onclick="addText()"></button>
-<button onclick="exportVideo()"></button>
-<input type="file" id="videoIn" accept="video/*" hidden>
-<input type="file" id="audioIn" accept="audio/*" hidden>
+  <button>Video</button>
+  <button>Photo</button>
+  <button>Before/After</button>
+  <button>Pose Comparison</button>
+  <button>Adjust</button>
 </div>
 
-<!-- Preview -->
-<div class="preview" id="preview">
-<div class="flash" id="flash"></div>
-</div>
-
-<!-- Timeline -->
-<div class="timeline" id="timeline"></div>
-
-<!-- Adjustment Panel -->
-<div class="adjust-panel">
-<div><label>Brightness</label><input type="range" id="brightness" min="50" max="150" value="100"></div>
-<div><label>Contrast</label><input type="range" id="contrast" min="50" max="200" value="100"></div>
-<div><label>Saturation</label><input type="range" id="saturation" min="50" max="200" value="100"></div>
-<div><label>Exposure</label><input type="range" id="exposure" min="50" max="150" value="100"></div>
-<div><label>Shadows</label><input type="range" id="shadows" min="0" max="100" value="50"></div>
-<div><label>Highlights</label><input type="range" id="highlights" min="0" max="100" value="50"></div>
-<div><label>Temperature</label><input type="range" id="temperature" min="2000" max="10000" value="5500"></div>
-<div><label>Tint</label><input type="range" id="tint" min="-100" max="100" value="0"></div>
-<div><label>Vibrance</label><input type="range" id="vibrance" min="50" max="200" value="100"></div>
-<div><label>Sharpness</label><input type="range" id="sharpness" min="0" max="100" value="0"></div>
-<div><label>Vignette</label><input type="range" id="vignette" min="0" max="100" value="0"></div>
-</div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.9/dist/ffmpeg.min.js"></script>
 <script>
-const {createFFmpeg, fetchFile} = FFmpeg;
-const ffmpeg = createFFmpeg({log:true});
+// Globals
+let currentMedia = null;
+const preview = document.getElementById('preview');
+const timeline = document.getElementById('timeline');
+const mediaSidebar = document.getElementById('mediaSidebar');
+const importMedia = document.getElementById('importMedia');
 
-const videoIn=document.getElementById('videoIn');
-const audioIn=document.getElementById('audioIn');
-const preview=document.getElementById('preview');
-const flash=document.getElementById('flash');
-const timeline=document.getElementById('timeline');
+// Import media
+importMedia.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-const sliders=['brightness','contrast','saturation','exposure','shadows','highlights','temperature','tint','vibrance','sharpness','vignette']
-let sliderEls={};
-sliders.forEach(id=>sliderEls[id]=document.getElementById(id));
+  const url = URL.createObjectURL(file);
+  currentMedia = { file, url, type: file.type.startsWith('video') ? 'video' : 'image' };
 
-let video,file,audioBuffer,ctx,audioFile;
-let beats=[],cuts=[],keyframes=[],textEl;
+  // Show in preview
+  displayPreview(currentMedia);
 
-/* Video & Audio Upload */
-function uploadVideo(){videoIn.click();}
-function uploadAudio(){audioIn.click();}
-videoIn.onchange=e=>{
-file=e.target.files[0];
-if(video) preview.removeChild(video);
-video=document.createElement('video');
-video.src=URL.createObjectURL(file);
-video.controls=true;
-preview.appendChild(video);
-video.ontimeupdate=()=>{ runEngine(); animateTextOnBeat(); };
-updateFilters();
-updateTimeline();
-}
-audioIn.onchange=async e=>{
-ctx=new AudioContext();
-audioFile=e.target.files[0];
-const arr=await e.target.files[0].arrayBuffer();
-audioBuffer=await ctx.decodeAudioData(arr);
-}
+  // Add to sidebar
+  const div = document.createElement('div');
+  div.className = 'media-item';
+  div.textContent = file.name;
+  div.onclick = () => displayPreview(currentMedia);
+  mediaSidebar.appendChild(div);
 
-/* Filter Update */
-sliders.forEach(id=>sliderEls[id].oninput=()=>{updateFilters();});
-function updateFilters(){
-if(!video) return;
-video.style.filter=
-`brightness(${sliderEls.brightness.value}%) contrast(${sliderEls.contrast.value}%) saturate(${sliderEls.saturation.value}%) 
-blur(${sliderEls.sharpness.value/10}px)`; // simplified
-}
-
-/* Preset */
-function applyPreset(p){
-if(!video)return;
-if(p==='shred'){
-let t=0;
-const anim=setInterval(()=>{
-sliderEls.brightness.value=95+t*0.2;
-sliderEls.contrast.value=130+t;
-sliderEls.saturation.value=120+t*0.3;
-updateFilters();
-t++; if(t>30)clearInterval(anim);
-},50);
-}
-}
-
-/* Text & Keyframes */
-function addText(){
-if(!textEl){
-textEl=document.createElement('div');
-textEl.className='text';
-textEl.innerText='DAY 90';
-preview.appendChild(textEl);
-}
-}
-function addKeyframe(){
-if(!video)return;
-keyframes.push({time:video.currentTime,scale:1.5});
-updateTimeline();
-}
-
-/* Beat Detection */
-function detectBeats(){
-if(!audioBuffer)return alert("Add audio first");
-beats=[];cuts=[];
-const data=audioBuffer.getChannelData(0);
-const step=1024;
-for(let i=0;i<data.length;i+=step){
-let sum=0;
-for(let j=0;j<step;j++) sum+=Math.abs(data[i+j]||0);
-if(sum/step>0.3){
-const t=i/audioBuffer.sampleRate;
-beats.push(t); cuts.push(t);
-}
-}
-updateTimeline();
-}
-
-/* Timeline Update (fixed scaling) */
-function updateTimeline(){
-if(!video) return;
-timeline.innerHTML='';
-const duration=video.duration || 1;
-const width=timeline.offsetWidth || 600;
-
-cuts.forEach(t=>{
-const clip=document.createElement('div');
-clip.className='clip';
-clip.style.left=(t/duration*width)+'px';
-timeline.appendChild(clip);
+  // Add to timeline
+  const clip = document.createElement('div');
+  clip.className = 'clip';
+  clip.textContent = file.name;
+  timeline.appendChild(clip);
 });
-beats.forEach(t=>{
-const b=document.createElement('div');
-b.className='beat';
-b.style.left=(t/duration*width)+'px';
-timeline.appendChild(b);
-});
-keyframes.forEach(kf=>{
-const k=document.createElement('span');
-k.className='key';
-k.style.left=(kf.time/duration*width)+'px';
-k.innerText='';
-timeline.appendChild(k);
-});
+
+// Display in preview
+function displayPreview(media) {
+  preview.innerHTML = '';
+  if (media.type === 'image') {
+    const img = document.createElement('img');
+    img.src = media.url;
+    preview.appendChild(img);
+  } else {
+    const video = document.createElement('video');
+    video.src = media.url;
+    video.controls = true;
+    preview.appendChild(video);
+  }
 }
 
-/* Engine & Text Animation on Beat */
-function runEngine(){
-if(!video) return;
-const t=video.currentTime;
-if(keyframes.length>1){
-for(let i=0;i<keyframes.length-1;i++){
-let a=keyframes[i],b=keyframes[i+1];
-if(t>=a.time && t<=b.time){
-let p=(t-a.time)/(b.time-a.time);
-let s=1+p*(b.scale-1);
-if(textEl) textEl.style.transform=`scale(${s})`;
-}
-}
-}
+// Filters
+function applyFilter(filter){
+  if (!currentMedia) return;
+  const el = preview.querySelector('img,video');
+  switch(filter){
+    case 'muscle': el.style.filter = 'contrast(1.5) brightness(1.2) saturate(1.3)'; break;
+    case 'glow': el.style.filter = 'brightness(1.3) sepia(0.2) saturate(1.4)'; break;
+    case 'beforeafter': el.style.filter = 'contrast(1.4) brightness(1.1)'; break;
+    case 'contrast': el.style.filter = 'contrast(1.7)'; break;
+    case 'cool': el.style.filter = 'hue-rotate(200deg) brightness(1.1) contrast(1.3)'; break;
+    default: el.style.filter = 'none';
+  }
 }
 
-function animateTextOnBeat(){
-if(!video || !textEl) return;
-const t=video.currentTime;
-beats.forEach(b=>{
-if(Math.abs(t-b)<0.04){
-flash.style.opacity=0.4;
-setTimeout(()=>flash.style.opacity=0,80);
-textEl.style.transform='scale(1.6)';
-textEl.style.color='#00ff99';
-setTimeout(()=>{
-textEl.style.transform='scale(1)';
-textEl.style.color='#fff';
-},120);
+// Placeholder functions for buttons
+function trimMedia(){ alert('Trim/Cut feature coming soon'); }
+function adjustSpeed(){ alert('Slow/Fast feature coming soon'); }
+function reverseMedia(){ alert('Reverse feature coming soon'); }
+function addText(){ alert('Text overlay coming soon'); }
+function addSticker(){ alert('Stickers coming soon'); }
+function addTransition(){ alert('Transitions coming soon'); }
+function addAudio(){ alert('Audio feature coming soon'); }
+function cropMedia(){ alert('Crop/Resize coming soon'); }
+function rotateMedia(){ alert('Rotate coming soon'); }
+function brightnessAdjust(){ alert('Brightness adjustment coming soon'); }
+function contrastAdjust(){ alert('Contrast adjustment coming soon'); }
+function saturationAdjust(){ alert('Saturation adjustment coming soon'); }
+function poseCompare(){ alert('Pose comparison coming soon'); }
+
+// Export media
+function exportMedia(){
+  if (!currentMedia) return alert('No media loaded');
+  const el = preview.querySelector('img,video');
+  if (!el) return;
+  if (currentMedia.type === 'image'){
+    const a = document.createElement('a');
+    a.href = el.src;
+    a.download = currentMedia.file.name;
+    a.click();
+  } else {
+    alert('Video export coming soon'); // Video export requires FFmpeg WASM
+  }
 }
-});
-}
-
-/* Export */
-async function exportVideo(){
-if(!file)return alert("Add video first");
-if(!ffmpeg.isLoaded()) await ffmpeg.load();
-ffmpeg.FS('writeFile','v.mp4',await fetchFile(file));
-if(audioFile) ffmpeg.FS('writeFile','a.mp3',await fetchFile(audioFile));
-
-let filter=`eq=brightness=${sliderEls.brightness.value/100}:contrast=${sliderEls.contrast.value/100}:saturation=${sliderEls.saturation.value/100}`;
-if(textEl) filter+=`,drawtext=text='DAY 90':fontcolor=white:fontsize=48:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,0,${video.duration})'`;
-
-let args=['-i','v.mp4'];
-if(audioFile) args.push('-i','a.mp3','-shortest');
-args.push('-vf',filter,'out.mp4');
-
-await ffmpeg.run(...args);
-const data=ffmpeg.FS('readFile','out.mp4');
-const url=URL.createObjectURL(new Blob([data.buffer],{type:'video/mp4'}));
-const a=document.createElement('a'); a.href=url; a.download='gymcut_capcut_ui.mp4'; a.click();
-alert('Export complete!');
-}
-
-/* Undo/Redo (placeholders) */
-function undo(){alert('Undo feature');}
-function redo(){alert('Redo feature');}
 </script>
+
 </body>
 </html>
